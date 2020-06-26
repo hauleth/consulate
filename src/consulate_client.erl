@@ -12,15 +12,20 @@
          get_service/2]).
 
 register(Name, Port) ->
+    CheckOpts = application:get_env(consulate, check, #{}),
+    Interval = maps:get(interval, CheckOpts, 10),
+    Deregister = maps:get(deregister, CheckOpts, 60),
+    Meta = application:get_env(consulate, meta, #{}),
     Service = #{
       'ID' => Name,
       'Name' => service_name(),
       'Port' => Port,
+      'Meta' => Meta,
       'Check' => #{
         'Name' => <<"Check Erlang Distribuition Port">>,
-        'Interval' => <<"30s">>,
-        'DeregisterCriticalServiceAfter' => <<"1m">>,
-        'TCP' => list_to_binary(io_lib:format("localhost:~B", [Port])),
+        'Interval' => format("~Bs", [Interval]),
+        'DeregisterCriticalServiceAfter' => format("~Bs", [Deregister]),
+        'TCP' => format("localhost:~B", [Port]),
         'Status' => <<"passing">>
        },
       'EnableTagOverride' => false
@@ -92,3 +97,6 @@ service_name() ->
         {ok, [Name]} -> list_to_binary(Name);
         _ -> <<"erlang-service">>
     end.
+
+format(Template, Args) ->
+    list_to_binary(io_lib:format(Template, Args)).

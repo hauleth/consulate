@@ -43,6 +43,12 @@ are:
 - `port` (defaults to `8500`) - port on which agent is listening
 - `scheme` (defaults to `http`) - connection scheme, can be `"http"`
    or `"https"`
+- `check` - map containing 2 fields:
+  + `interval` (defaults to `10`) - time in seconds between each health check
+  + `deregister` (defaults to `60`) - time in seconds after which the service
+    will be deregistered from catalog after it fails test
+- `meta` - map of `atom() => atom() | binary()` pairs that will be submitted as
+  service metadata
 
 ## License
 
