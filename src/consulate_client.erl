@@ -2,11 +2,6 @@
 
 -include_lib("kernel/include/logger.hrl").
 
--define(service, case init:get_argument(consul_service) of
-                     {ok, [[Name]]} -> list_to_binary(Name);
-                     _ -> <<"erlang-service">>
-                 end).
-
 -compile({no_auto_import, [get/1, put/2]}).
 
 -export([register/2,
@@ -19,7 +14,7 @@
 register(Name, Port) ->
     Service = #{
       'ID' => Name,
-      'Name' => ?service,
+      'Name' => service_name(),
       'Port' => Port,
       'Check' => #{
         'Name' => <<"Check Erlang Distribuition Port">>,
@@ -40,7 +35,7 @@ list_local_services() ->
     get("/v1/agent/services").
 
 list_services(Host) ->
-    Path = io_lib:format("/v1/catalog/service/~s", [?service]),
+    Path = io_lib:format("/v1/catalog/service/~s", [service_name()]),
     Filter = io_lib:format("Node == \"~s\"", [Host]),
     Endpoint = {Path, [{"filter", Filter}]},
     get(Endpoint).
@@ -50,7 +45,7 @@ get_local_service(Name) ->
     get(Endpoint).
 
 get_service(Name, Host) ->
-    Path = io_lib:format("/v1/catalog/service/~s", [?service]),
+    Path = io_lib:format("/v1/catalog/service/~s", [service_name()]),
     Filter = io_lib:format("ServiceID == \"~s\" and Node == \"~s\"", [Name, Host]),
     Endpoint = {Path, [{"filter", Filter}]},
     get(Endpoint).
@@ -91,3 +86,9 @@ build_url({Path, Query}) ->
     uri_string:recompose(URI);
 build_url(Path) ->
     build_url({Path, []}).
+
+service_name() ->
+    case init:get_argument(consul_service) of
+        {ok, [Name]} -> list_to_binary(Name);
+        _ -> <<"erlang-service">>
+    end.
